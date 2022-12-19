@@ -7,7 +7,7 @@
 #define STDIN_BUFFER 256
 
 #define SHELL_PROMPT "#> "
-#define SHELL_EXIT "EXITS"
+#define SHELL_EXIT "exit"
 #define SHELL_CLEAR "clear"
 
 #define ANSI_RESET_CURSOR "\x1b[0;0H"
@@ -34,23 +34,49 @@ void parse_input(char* input_buf)
 {
 	char csh_exit[] = SHELL_EXIT;
 	char csh_clear[] = SHELL_CLEAR;
+	int exec_argc = 1;
+	char** exec_argv = {0};
+	char** exec_envp = {0};
 	
-	// fprintf(stdout, "\ncmd to be run: %s\n", input_buf);
-
 	char* token;
-	char* buf_cpy = input_buf;
+	char* buf_cpy = strdup(input_buf);
 
-	while (( token = strtok_r(buf_cpy, " ", &buf_cpy)))
-		fprintf(stdout, "\nToken -> " ANSI_RED_TEXT  "%s" "\n" ANSI_RESET_ATTR, token);
-
-	if ( strncmp(input_buf, csh_exit, sizeof(*input_buf)) == 0 ) {
+	if ( strncmp( csh_exit, input_buf, 4 ) == 0 ) {
 		exit(0);
 	}
-	
-	if ( strncmp(input_buf, csh_clear, sizeof(*input_buf)) == 0 ) {
-		screen_clear();
+
+	exec_argv = malloc(sizeof(char *));
+
+	if ( strchr(input_buf, ' ') == NULL ) {
+		execve(input_buf, NULL, exec_envp);
 	}
 
+	// Get the number of items for the array.
+	while ((token = strtok_r(buf_cpy, " ", &buf_cpy))) {
+		exec_argv = realloc(exec_argv, (exec_argc + 1) *  sizeof(char *));
+		exec_argv[exec_argc - 1] = strdup(token);	
+		exec_argc++;
+	}
+
+	exec_argv[exec_argc] = NULL;
+
+	// debugging
+	for (int i = 0; i < exec_argc; i++)
+		printf("exec_argv %d -> " ANSI_RED_TEXT  "%s\n" ANSI_RESET_ATTR, i, exec_argv[i]);
+	
+	execve(exec_argv[0], exec_argv, exec_envp);
+	perror("execve");
+
+	// Free our malloc'd mem.
+	
+	for (int i = 0; i < exec_argc; i++) {
+		free(exec_argv[i]);
+	}
+	free(exec_argv);
+		
+	if ( strncmp( csh_clear, input_buf, 5 ) == 0 ) {
+		screen_clear();
+	}
 }
 
 int main(int argc, char** argv, char** envp)
@@ -60,10 +86,10 @@ int main(int argc, char** argv, char** envp)
 	// Signal handling
 	signal(SIGINT, handle_sigint);
 
-	while(1 == 1) {
+	while (1 == 1) {
 		fprintf(stdout, SHELL_PROMPT);
 		fgets(line, sizeof(line), stdin);
 				
-		parse_input(line);	
+		parse_input(line);
 	}	
 }
