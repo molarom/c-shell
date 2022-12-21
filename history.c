@@ -32,7 +32,7 @@ void add_command(List *list, char *command) {
     list->size++;
 }
 
-void remove_command(List *list, int index) 
+void remove_command(List *list, int index)
 {
     if (index < 0 || index >= list->size) {
         fprintf(stderr, "Error: index out of range\n");
@@ -64,7 +64,9 @@ void print_history(List *list)
     Node *node = list->head;
     int i = 0;
     while (node->next != NULL) {
-        printf("%d: %s\n", i, node->command);
+        printf("%d: %s", i, node->command);
+        node = node->next;
+        i++;
     }
 }
 
