@@ -7,6 +7,7 @@ typedef struct node {
     struct node *next;
 } Node;
 
+// Keep track of the ends of our list.
 typedef struct list {
     Node *head;
     Node *tail;
@@ -14,7 +15,7 @@ typedef struct list {
 } List;
 
 // Creates a new node with the given command
-Node *create_node(char *command);
+static Node *create_node(char *command);
 
 // Initializes an empty list
 List *create_list();
@@ -25,6 +26,7 @@ void add_command(List *list, char *command);
 // Removes the command at the given index from the list
 void remove_command(List *list, int index);
 
+// Print out contents.
 void print_history(List *list);
 
 void free_list(List *list); 
